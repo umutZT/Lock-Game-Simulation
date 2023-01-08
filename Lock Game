@@ -1,0 +1,268 @@
+@@ -0,0 +1,267 @@
+COLUMN_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H"]
+MIN_COLUMN_NUMBER = 4
+MAX_COLUMN_NUMBER = 8
+COLUMN_DICTIONARY = {
+    "A": 0,
+    "B": 1,
+    "C": 2,
+    "D": 3,
+    "E": 4,
+    "F": 5,
+    "G": 6,
+    "H": 7
+}
+def make_playing_field(row_column_number):
+    field_list = []
+    for row in range(row_column_number):
+        field_list.append([])
+        for column in range(row_column_number):
+            field_list[row].append(" ")
+    return field_list
+
+def print_playing_field(field_list):
+    row_column_number = len(field_list)
+
+    print(" ", end="")
+    for column in range(row_column_number):  # Printing Column names
+        print("   " + COLUMN_NAMES[column], end="")
+
+    print("")
+    print("  ", end="")
+    print("----" * row_column_number, end="")
+    print("-")
+
+    for row in range(row_column_number):
+        print(f"{row + 1} | ", end="")
+        for column in range(row_column_number):
+            print(f"{field_list[row][column]} | ", end="")
+        print(row + 1)
+        print("  ", end="")
+        print("----" * row_column_number, end="")
+        print("- ")
+
+    print(" ", end="")
+    for column in range(row_column_number):  # Printing Column names
+        print("   " + COLUMN_NAMES[column], end="")
+    print("")
+
+def playing_the_game(field_list, character_of_player1, character_of_player2):
+    row_column_number = len(field_list)
+    number_of_character1 = row_column_number
+    number_of_character2 = row_column_number
+
+    cont = True
+    while cont:
+        field_list, number_of_character2 = take_position_and_make_changes(field_list, character_of_player1,character_of_player2, number_of_character2)
+        print_playing_field(field_list)
+        if number_of_character2 < 2:
+            print(f"Player {character_of_player1} won the game.")
+            break
+
+        field_list, number_of_character1 = take_position_and_make_changes(field_list, character_of_player2,character_of_player1, number_of_character1)
+        print_playing_field(field_list)
+        if number_of_character1 < 2:
+            print(f"Player {character_of_player2} won the game.")
+            cont = False
+
+def take_position_and_make_changes(field_list, player_character, opponent_character, number_of_opponent_character):
+    play_choice = input(
+        f"Player {player_character}, please enter the position of your own stone you want to move and the target position: ")
+
+    while len(play_choice) != 5:
+        print("Wrong value entered. Please try again.(Don't use space more than once.)")
+        play_choice = input(
+            f"Player {player_character}, please enter the position of your own stone you want to move and the target position: ")
+
+    play_choice = play_choice.replace(" ", "")
+    row_column_number_index = len(field_list) - 1
+
+    while True:
+        try:
+            tmp_choice_list = []
+            for choice in play_choice:
+                tmp_choice_list.append(choice)
+            tmp_choice_list[0] = int(tmp_choice_list[0])
+            tmp_choice_list[2] = int(tmp_choice_list[2])
+            break
+        except:
+            print("Wrong value entered. Please try again.")
+            play_choice = (input(f"Player {player_character}, please enter the position of your own stone you want to move and the target position: ")).replace(' ', '')
+
+    tmp_choice_list = control_positions(play_choice, player_character, field_list)
+    stone_column = COLUMN_DICTIONARY[tmp_choice_list[1]]
+
+    target_column = COLUMN_DICTIONARY[tmp_choice_list[3]]
+
+    stone_row = tmp_choice_list[0] - 1
+    target_row = tmp_choice_list[2] - 1
+
+    field_list[target_row][target_column] = player_character
+    field_list[stone_row][stone_column] = " "
+
+    for number in [1, -1]:
+        try:
+            # 1 for down -1 for up
+            if field_list[target_row + number][target_column] == opponent_character and field_list[target_row + 2 * number][target_column] == player_character and target_row + 2 * number >= 0:
+                number_of_opponent_character -= 1
+                print(F"The stone at position {target_row}{tmp_choice_list[3]} was locked and removed.")
+                field_list[target_row + number][target_column] = " "
+            # 1 for right -1 for left 
+            if field_list[target_row][target_column + number] == opponent_character and field_list[target_row][target_column + 2 * number] == player_character:
+                number_of_opponent_character -= 1
+                print(F"The stone at position {target_row + 1}{COLUMN_NAMES[target_column + number]} was locked and removed.")
+                field_list[target_row][target_column + number] = " "
+        except IndexError:
+            pass
+
+    # top right corner control
+    if field_list[0][row_column_number_index] == opponent_character:
+        if field_list[0][row_column_number_index - 1] == player_character and field_list[1][row_column_number_index] == player_character:
+            number_of_opponent_character -= 1
+            print(F"The stone at position {1}{COLUMN_NAMES[row_column_number_index]} was locked and removed.")
+            field_list[0][row_column_number_index] = " "
+
+    # top left corner control
+    if field_list[0][0] == opponent_character:
+        if field_list[0][1] == player_character and field_list[1][0] == player_character:
+            number_of_opponent_character -= 1
+            print(F"The stone at position {1}{COLUMN_NAMES[0]} was locked and removed.")
+            field_list[0][0] = " "
+
+    # lower right corner control
+    if field_list[row_column_number_index][row_column_number_index] == opponent_character:
+        if field_list[row_column_number_index][row_column_number_index - 1] == player_character and field_list[row_column_number_index - 1][row_column_number_index] == player_character:
+            number_of_opponent_character -= 1
+            print(F"The stone at position {row_column_number_index + 1}{COLUMN_NAMES[row_column_number_index]} was locked and removed.")
+            field_list[row_column_number_index][row_column_number_index] = " "
+
+    # lower left corner control
+    if field_list[row_column_number_index][0] == opponent_character:
+        if field_list[row_column_number_index][1] == player_character and field_list[row_column_number_index - 1][0] == player_character:
+            number_of_opponent_character -= 1
+            print(F"The stone at position {row_column_number_index + 1}{COLUMN_NAMES[0]} was locked and removed.")
+            field_list[row_column_number_index][0] = " "
+
+    return field_list, number_of_opponent_character
+
+def control_positions(play_choice, player_character, field_list):
+    while True:
+        try:
+            play_choice.replace(" ","")
+            tmp_choice_list = []
+            for choice in play_choice:
+                tmp_choice_list.append(choice)
+
+            # row control
+            tmp_choice_list[0] = int(tmp_choice_list[0])
+            tmp_choice_list[2] = int(tmp_choice_list[2])
+
+            if (0 >= tmp_choice_list[2] or tmp_choice_list[2] > len(field_list) or 0 >= tmp_choice_list[0] or tmp_choice_list[0] > len(field_list)):
+                print("Wrong value entered.Try again.")
+                raise ValueError
+
+            first_row = int(tmp_choice_list[0]) - 1
+            target_row = int(tmp_choice_list[2]) - 1
+
+            # column control 1
+            is_column_name_false = True
+            for index in range(len(field_list)):
+                if COLUMN_NAMES[index] == tmp_choice_list[1]:
+                    is_column_name_false = False
+                    break
+            if is_column_name_false:
+                print("Wrong column name entered.Try again.")
+                raise ValueError
+
+            # column control 2
+            is_column_name_false = True
+            for index in range(len(field_list)):
+                if COLUMN_NAMES[index] == tmp_choice_list[3]:
+                    is_column_name_false = False
+                    break
+            if is_column_name_false:
+                print("Wrong column name entered.Try again.")
+                raise ValueError
+
+            first_column = COLUMN_DICTIONARY[tmp_choice_list[1].upper()]
+            target_column = COLUMN_DICTIONARY[tmp_choice_list[3].upper()]
+
+            if field_list[first_row][first_column] != player_character:
+                print("You dont have any stone for this position.")
+                raise ValueError
+
+            elif tmp_choice_list[0] == tmp_choice_list[2]:
+                if target_column > first_column:
+                    for position in range(first_column + 1, target_column + 1):
+                        if field_list[target_row][position] != " ":
+                            print("There is a stone of the opposing team in the path of the stone. Please try again.")
+                            raise ValueError
+                else:
+                    for position in range(target_column, first_column):
+                        if field_list[target_row][position] != ' ':
+                            print("There is a stone of the opposing team in the path of the stone. Please try again.")
+                            raise ValueError
+
+                return tmp_choice_list
+            elif tmp_choice_list[1].upper() == tmp_choice_list[3].upper():
+                if target_row > first_row:
+                    for position in range(first_row + 1, target_row + 1):
+                        if field_list[position][target_column] != " ":
+                            print("There is a stone of the opposing team in the path of the stone. Please try again.")
+                            raise ValueError
+                else:
+                    for position in range(target_row, first_row):
+                        if field_list[position][target_column] != " ":
+                            print("There is a stone of the opposing team in the path of the stone. Please try again.")
+                            raise ValueError
+                return tmp_choice_list
+            else:
+                print("Wrong positions entered.")
+                play_choice = (input(f"Player {player_character}, please enter the position of your own stone you want to move and the target position: "))
+
+        except ValueError:
+            play_choice = (input(f"Player {player_character}, please enter the position of your own stone you want to move and the target position: ")).replace(" ","")
+
+def main():
+    continue_answer = "y"
+    character_of_player1 = input("Enter a character to represent player 1: ")
+    while len(character_of_player1) != 1:
+        print("Enter one character(Don't use space).")
+        character_of_player1 = input("Enter a character to represent player 1: ")
+
+    character_of_player2 = input("Enter a character to represent player 2: ")
+    while character_of_player2 == character_of_player1:
+        print("You can't use the same character.")
+        character_of_player2 = input("Enter a character to represent player 2: ")
+
+    while len(character_of_player2) != 1:
+        print("Enter one character(Don't use space).")
+        character_of_player2 = input("Enter a character to represent player 2: ")
+
+    while continue_answer in ["Y", "y"]:
+        row_column_number_control = True
+        while row_column_number_control:
+            try:
+                row_column_number = int(input(f"Enter the row/column number of the playing field({MIN_COLUMN_NUMBER}-{MAX_COLUMN_NUMBER}): "))
+                while row_column_number < MIN_COLUMN_NUMBER or row_column_number > MAX_COLUMN_NUMBER:
+                    print("Incorrect value.Please try again.")
+                    row_column_number = int(input(f"Enter the row/column number of the playing field({MIN_COLUMN_NUMBER}-{MAX_COLUMN_NUMBER}): "))
+            except:
+                print("Incorrect value.Please try again.")
+            else:
+                row_column_number_control = False
+
+        field_list = make_playing_field(row_column_number)
+        for column in range(row_column_number):
+            field_list[0][column] = character_of_player2
+            field_list[-1][column] = character_of_player1
+        print_playing_field(field_list)
+
+        playing_the_game(field_list, character_of_player1, character_of_player2)
+
+        continue_answer = input("Would you like to play again(Y/N)?: ")
+        while not continue_answer.upper() in ["Y", "N"]:
+            print("Incorrect value.Please try again.")
+            continue_answer = input("Would you like to play again(Y/N)?: ")
+
+main()
