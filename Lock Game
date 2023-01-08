@@ -1,4 +1,3 @@
-@@ -0,0 +1,267 @@
 COLUMN_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H"]
 MIN_COLUMN_NUMBER = 4
 MAX_COLUMN_NUMBER = 8
